@@ -1,0 +1,8 @@
+django
+torch
+torchvision
+opencv-python
+requests
+numpy
+pusher==3.3.3
+pusher_push_notifications==2.0.2
