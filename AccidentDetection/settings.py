@@ -29,7 +29,6 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -37,7 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'accidentdetectionapp'
+    'accidentdetectionapp',  # Your app
+    'rest_framework',  # Add this here
 ]
 
 MIDDLEWARE = [
@@ -139,6 +139,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'gargraj511@gmail.com'
-EMAIL_HOST_PASSWORD = 'vywelwkpihngvpci'
+EMAIL_HOST_USER = 'tnwisetest@gmail.com'
+EMAIL_HOST_PASSWORD = 'mcet@12345'
 
