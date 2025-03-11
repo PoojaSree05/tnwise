@@ -58,7 +58,7 @@ def detect(boxes, t1):
 def send_whatsapp_message(latitude, longitude):
     try:
         phone_number = "+916380918443"  # Recipient's WhatsApp number
-        message = f"🚨 Accident detected!\nLive Location: https://www.google.com/maps?q={latitude},{longitude}"
+        message = f"Accident Detected! 🚨 \nImmediate attention required. \nPlease respond quickly!\nLive Location: https://www.google.com/maps?q={latitude},{longitude}"
 
         # Encode the message for the URL
         encoded_message = message.replace(" ", "%20").replace("\n", "%0A")
@@ -82,12 +82,15 @@ class streaming(object):
 
         # Load accident detection models
         self.model1 = torch.hub.load('ultralytics/yolov5', 'custom',
-                                     path='C:\\Users\\cpooj\\Downloads\\AccidentDetectionAI\\best (2).pt',
-                                     device='cpu')
+                             path='C:\\Users\\M.Sruthi\\Desktop\\tnwise\\tnwise\\best.pt',
+                             device='cpu')
 
         self.model = torch.hub.load('ultralytics/yolov5', 'custom',
-                                    path='C:\\Users\\cpooj\\Downloads\\AccidentDetectionAI\\accident2.pt',
-                                    device='cpu')
+                            path='C:\\Users\\M.Sruthi\\Desktop\\tnwise\\tnwise\\accident2.pt',
+                            device='cpu')
+
+
+
 
     # Function to get video frames
     def get_frame(self):
@@ -111,8 +114,8 @@ class streaming(object):
                 print("🚨 Accident detected!")
 
                 # Example accident location (Replace with real GPS data)
-                latitude = 12.9716
-                longitude = 77.5946
+                latitude = 11.677733
+                longitude = 78.12438
 
                 # Send WhatsApp message with location
                 send_whatsapp_message(latitude, longitude)

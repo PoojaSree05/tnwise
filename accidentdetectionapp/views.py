@@ -15,7 +15,8 @@ from .models import *
 # Accident API Endpoint
 @api_view(['POST'])
 def accident_api(request):
-    return Response({"message": "Accident detected successfully!"})
+    return Response({"message": "🚨 Accident Detected! Immediate attention required. Please respond quickly!"})
+
 
 # Push Notification Function
 def send_response():
