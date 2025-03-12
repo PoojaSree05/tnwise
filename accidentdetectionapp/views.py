@@ -1,100 +1,171 @@
 from django.shortcuts import render, HttpResponse, redirect
-from django.urls import reverse
-from django.http.response import StreamingHttpResponse
+from django.http.response import StreamingHttpResponse, JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from accidentdetectionapp.stream import streaming
-import googlemaps
 import requests
-import json
-import time
 import pusher
+import pywhatkit as kit
 from pusher_push_notifications import PushNotifications
-from .models import *
+from .models import Notifications, Hospital
 
-# Accident API Endpoint
-@api_view(['POST'])
-def accident_api(request):
-    return Response({"message": "🚨 Accident Detected! Immediate attention required. Please respond quickly!"})
+# ✅ Configure Pusher
+pusher_client = pusher.Pusher(
+    app_id="1954040",
+    key="5792836772309a1ad042",
+    secret="f19fde8655bbca88f675",
+    cluster="ap2",
+    ssl=True
+)
 
-
-# Push Notification Function
-def send_response():
-    push_client = PushNotifications(
-        instance_id='YOUR_INSTANCE_ID',
-        secret_key='YOUR_SECRET_KEY',
-    )
-
-    response = push_client.publish(
-        interests=['my-channel'],
-        publish_body={
-            'web': {
-                'notification': {
-                    'title': 'Accident Alert!',
-                    'body': 'Request Accepted',
-                },
-            },
-        },
-    )
-    print("Push sent:", response)
-
-# Global Variable for Hospital Name
-global hospital_name
+# ✅ Global Variable for Hospital Name
 hospital_name = "Unnamed"
 
-# Home Page
-def home(request):
-    return render(request, 'index.html')
+# ✅ Accident API Endpoint
+@api_view(['POST'])
+def accident_api(request):
+    return Response({"message": "Accident detected successfully!"})
 
-# Streaming Webcam Feed
+# ✅ Push Notification Function
+def send_response(notification_id):
+    pusher_client.trigger('my-channel', 'request-accepted', {
+        'notification_id': notification_id,
+        'message': 'Request Accepted',
+    })
+    print(f"✅ Push sent for notification: {notification_id}")
+
+# ✅ Send WhatsApp Message
+def send_whatsapp_message(phone_number, message):
+    try:
+        print("[INFO] Sending WhatsApp message...")
+        kit.sendwhatmsg_instantly(phone_number, message, wait_time=20)
+        print("[INFO] WhatsApp message sent successfully.")
+    except Exception as e:
+        print(f"[ERROR] WhatsApp message failed: {e}")
+
+# ✅ Improved Accident Detection Logic
+def process_detection(results, confidence_threshold=0.6):
+    if results.empty:
+        print("[DEBUG] No detection found.")
+        return False
+
+    accident_detected = False
+
+    for _, result in results.iterrows():
+        class_name = result['name']
+        confidence = result['confidence']
+
+        if class_name.lower() == "accident" and confidence >= confidence_threshold:
+            print("[DEBUG] Valid Accident Detected!")
+            accident_detected = True
+            break
+
+    return accident_detected
+
+# ✅ YOLO Streaming with Improved Detection
 def gen(camera):
-    while True:
-        frame = camera.get_frame()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+    accident_sent = False  # Prevent duplicate notifications
 
+    while True:
+        jpeg_frame, raw_frame = camera.get_frame()
+
+        if jpeg_frame is None or raw_frame is None:
+            print("[ERROR] Frame is None - Skipping")
+            continue
+
+        results = camera.detect_objects(raw_frame)
+        print("[DEBUG] YOLO Detection Result:", results)
+
+        if process_detection(results) and not accident_sent:
+            print("[DEBUG] Accident Detection Confirmed")
+
+            # Save notification in DB
+            notif = Notifications(notification="Accident detected", lattitude=47.5, longitude=122.33, accepted=0)
+            notif.save()
+
+            # Send push notification
+            send_response(notif.n_id)
+
+            # Send WhatsApp message
+            message = "🚨 Accident Detected! Please check your dashboard."
+            phone_number = "+91XXXXXXXXXX"  # Replace with a valid phone number
+            send_whatsapp_message(phone_number, message)
+
+            # Avoid duplicate alerts
+            accident_sent = True
+
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + jpeg_frame + b'\r\n\r\n')
+
+# ✅ Webcam Feed Endpoint
 def webcam_feed(request):
     return StreamingHttpResponse(gen(streaming()), content_type='multipart/x-mixed-replace; boundary=frame')
 
-# Google Maps API for Nearby Hospitals
-def maps(request):
-    API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY'  # <-- Replace this with settings.py reference
-    gmaps = googlemaps.Client(key=API_KEY)
-
-    location = (28.4089, 77.3178)  # Latitude, Longitude
-    places_result = gmaps.places_nearby(location=location, radius=5000, type='hospital')
-
-    # Print hospital details (for debugging)
-    for place in places_result['results']:
-        print("Name:", place['name'])
-        print("Latitude:", place['geometry']['location']['lat'])
-        print("Longitude:", place['geometry']['location']['lng'])
-        print()
-
+# ✅ Home Page
+def home(request):
     return render(request, 'index.html')
 
-# Hospital Page
+# ✅ Nearby Hospitals using OpenStreetMap API
+def get_nearby_hospitals(request):
+    latitude = float(request.GET.get('lat', '11.677733'))
+    longitude = float(request.GET.get('lon', '78.124380'))
+
+    nominatim_url = f"https://nominatim.openstreetmap.org/search?format=json&q=hospital&countrycodes=IN&bounded=1&viewbox={longitude-0.1},{latitude+0.1},{longitude+0.1},{latitude-0.1}&limit=10"
+
+    try:
+        response = requests.get(nominatim_url, headers={
+            "User-Agent": "AccidentDetectionApp",
+            "Accept-Language": "en"
+        })
+        hospitals = response.json()
+
+        hospital_list = [
+            {
+                'name': hospital.get('display_name', 'Unknown Hospital'),
+                'latitude': hospital.get('lat', ''),
+                'longitude': hospital.get('lon', ''),
+            } for hospital in hospitals
+        ]
+
+        return JsonResponse({'hospitals': hospital_list})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)})
+
+# ✅ Hospital Registration Page
 def hospital(request):
     return render(request, 'hospital.html')
 
-# Test Page (Displays Notifications)
+# ✅ Hospitals Page
+def hospitals_page(request):
+    return render(request, 'hospitals.html')
+
+# ✅ Notification Testing Page
 def test(request):
     global hospital_name
     notifications = Notifications.objects.all().order_by('-n_id')
+    accident_alert = "🚨 Accident detected! ✅ WhatsApp alert sent successfully."
 
     context = {
         'notifications': notifications,
         'hospital_name': hospital_name,
+        'accident_alert': accident_alert,
     }
     return render(request, "index2.html", context)
 
-# Accept Notification Request
+# ✅ Accept Notification
 def accept(request, id):
-    Notifications.objects.filter(n_id=id).update(accepted=1)
-    send_response()
-    return redirect('test')
+    try:
+        notification = Notifications.objects.get(n_id=id)
+        notification.accepted = 1
+        notification.save()
 
-# Register a New Hospital
+        send_response(id)
+        return redirect('test')
+    except Notifications.DoesNotExist:
+        return JsonResponse({'error': 'Notification not found'}, status=404)
+
+# ✅ Hospital Registration
 def register(request):
     global hospital_name
     if request.method == 'POST':
@@ -106,9 +177,8 @@ def register(request):
         print(name, email, latitude, longitude)
         hospital = Hospital(name=name, email=email, h_lattitude=latitude, h_longitude=longitude)
         hospital.save()
-        hospital_name = name
 
+        hospital_name = name
         return redirect('test')
 
-    return render(request, 'register.html')
-
+    return render(request, 'hospitals.html')

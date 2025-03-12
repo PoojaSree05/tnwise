@@ -1,18 +1,20 @@
-from django.urls import path
-from . import views
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from django.urls import path
+from django.urls import path, include  # ✅ Ensure 'path' is imported
 from . import views
 
+urlpatterns = [
+    path('', views.home, name='home'),
+    path('webcam_feed/', views.webcam_feed, name='webcam_feed'),
+    path("maps/", views.get_nearby_hospitals, name='maps'), 
+    path('accident_api/', views.accident_api, name='accident_api'),
+    path('hospitals/', views.hospitals_page, name='hospitals_page'),
+    path('test/', views.test, name='test'),
+    path('accept/<int:id>/', views.accept, name='accept'),
+    path('register/', views.register, name='register'),
+    path("hospital/", views.hospital, name='hospital'),
+    path('get_nearby_hospitals/', views.get_nearby_hospitals, name='get_nearby_hospitals'),
+    path('send-message/', views.send_whatsapp_message, name='send_message'),
 
-urlpatterns=[
-    path('',views.home,name='home'),
-    path("webcam_feed",views.webcam_feed,name='webcam_feed'),
-    path("maps",views.maps,name='maps'),
-    path("hospital",views.hospital,name='hospital'),
-    path("test",views.test,name='test'),
-    path("accept/<id>",views.accept,name='accept'),
-    path("register",views.register,name='register'),
-    # path("send_mail",views.send_mail,name='send_mail')
 ]
+
+
+

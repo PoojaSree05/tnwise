@@ -8,3 +8,4 @@ pusher_client = pusher.Pusher(
     ssl=True
 )
 print("Pusher configured successfully!")
+
