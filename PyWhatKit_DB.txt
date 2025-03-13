@@ -83,3 +83,53 @@ Time: 21:6
 Phone Number: +91XXXXXXXXXX
 Message: 🚨 Accident Detected! Please check your dashboard.
 --------------------
+Date: 12/3/2025
+Time: 21:43
+Phone Number: +91XXXXXXXXXX
+Message: 🚨 Accident Detected! Please check your dashboard.
+--------------------
+Date: 12/3/2025
+Time: 22:53
+Phone Number: +91XXXXXXXXXX
+Message: 🚨 Accident Detected! Please check your dashboard.
+--------------------
+Date: 12/3/2025
+Time: 22:57
+Phone Number: +91XXXXXXXXXX
+Message: 🚨 Accident Detected! Please check your dashboard.
+--------------------
+Date: 13/3/2025
+Time: 19:36
+Phone Number: +91XXXXXXXXXX
+Message: 🚨 Accident Detected! Please check your dashboard.
+--------------------
+Date: 13/3/2025
+Time: 19:44
+Phone Number: +91XXXXXXXXXX
+Message: 🚨 Accident Detected! Please check your dashboard.
+--------------------
+Date: 13/3/2025
+Time: 19:58
+Phone Number: +916380918443
+Message: 🚨 Accident Detected! Please check your dashboard.
+--------------------
+Date: 13/3/2025
+Time: 20:32
+Phone Number: +916380918443
+Message: 🚨 Accident Detected!/n Immediate attention required./nPlease respond Quickly!/nLive Location: https://www.google.com/maps?q=11.677733,78.12438
+--------------------
+Date: 13/3/2025
+Time: 21:15
+Phone Number: +916380918443
+Message: 🚨 Accident Detected!/n Immediate attention required./nPlease respond Quickly!/nLive Location: https://www.google.com/maps?q=11.677733,78.12438
+--------------------
+Date: 13/3/2025
+Time: 21:22
+Phone Number: +916380918443
+Message: 🚨 Accident Detected!/n Immediate attention required./nPlease respond Quickly!/nLive Location: https://www.google.com/maps?q=11.677733,78.12438
+--------------------
+Date: 13/3/2025
+Time: 21:27
+Phone Number: +916380918443
+Message: 🚨 Accident Detected!/n Immediate attention required./nPlease respond Quickly!/nLive Location: https://www.google.com/maps?q=11.677733,78.12438
+--------------------

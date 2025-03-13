@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -7,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accident Detection System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
     <style>
         body {
@@ -15,22 +17,26 @@
             font-family: Arial, sans-serif;
             text-align: center;
         }
+
         .container {
             margin-top: 40px;
         }
+
         .title {
             font-size: 24px;
             font-weight: bold;
             text-transform: uppercase;
             margin-bottom: 30px;
         }
+
         .content {
             display: flex;
-            justify-content: flex-start; /* Moves the camera box slightly left */
+            justify-content: flex-start;
             align-items: center;
-            gap: 80px; /* Increased gap to balance */
-            padding-left: 5%; /* Shifts everything a bit left */
+            gap: 80px;
+            padding-left: 5%;
         }
+
         .video-box {
             border: 3px solid #4CAF50;
             border-radius: 8px;
@@ -41,6 +47,7 @@
             justify-content: center;
             box-shadow: 0px 0px 10px rgba(0, 255, 0, 0.5);
         }
+
         .status-container {
             display: flex;
             flex-direction: column;
@@ -48,6 +55,7 @@
             justify-content: center;
             gap: 20px;
         }
+
         .status-box {
             background-color: black;
             padding: 12px 20px;
@@ -58,12 +66,33 @@
             text-align: center;
             box-shadow: 0 4px 10px rgba(0, 255, 0, 0.3);
         }
+
         #response {
             box-shadow: 0 4px 10px rgba(255, 255, 255, 0.5);
             margin-bottom: 10px;
         }
+
         #request {
             color: #00ff00;
+        }
+
+        #hospitalList {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 20px;
+            background-color: black;
+            border-radius: 8px;
+        }
+
+        .list-group-item {
+            color: white;
+            background-color: black;
+            border: 1px solid #4CAF50;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
         }
     </style>
 </head>
@@ -73,16 +102,28 @@
         <div class="title">🚑 ACCIDENT DETECTION SYSTEM</div>
 
         <div class="content">
-            <!-- Camera Box (Moved Slightly Left) -->
             <div class="video-box">
-                <img src="webcam_feed" alt="Live Video Feed" style="width: 100%; height: 500; border-radius: 5px;">
+                <img src="webcam_feed" alt="Live Video Feed" style="width: 100%; height: 500px; border-radius: 5px;">
             </div>
-            
-            <!-- Status Section -->
+
             <div class="status-container">
                 <div class="status-box" id="response">Processing...</div>
                 <div class="status-box" id="request">No Accident Detected</div>
             </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <h1 class="text-center text-primary">🏥 Nearest Hospitals</h1>
+        <p class="text-center">Find the nearest hospitals to the accident location.</p>
+
+        <div class="text-center">
+            <button id="fetchBtn" class="btn btn-success" onclick="fetchHospitals()" disabled>Find Hospitals</button>
+        </div>
+
+        <div class="mt-4">
+            <h3 class="text-center">Available Hospitals</h3>
+            <ul id="hospitalList" class="list-group"></ul>
         </div>
     </div>
 
@@ -91,14 +132,47 @@
         var pusher = new Pusher('4da6311b184ace45d1dc', { cluster: 'ap2' });
         var channel = pusher.subscribe('my-channel');
 
+        const fetchBtn = document.getElementById('fetchBtn');
+
         channel.bind('my-event', function(data) {
             if (data['message']) {
                 document.getElementById('response').textContent = data['message'];
             }
+
             if (data['request']) {
                 document.getElementById('request').textContent = data['request'];
+
+                if (data['request'].toLowerCase() === 'request sent') {
+                    fetchBtn.removeAttribute('disabled');
+                }
             }
         });
+
+        function fetchHospitals() {
+            let latitude = 11.677733;
+            let longitude = 78.124380;
+
+            fetch(`/maps/?lat=${latitude}&lon=${longitude}`)
+                .then(response => response.json())
+                .then(data => {
+                    let list = document.getElementById("hospitalList");
+                    list.innerHTML = "";
+
+                    if (data.hospitals.length > 0) {
+                        data.hospitals.forEach(hospital => {
+                            let item = document.createElement("li");
+                            item.className = "list-group-item";
+                            item.innerHTML = `<strong>${hospital.name}</strong><br>
+                                📍 Location: (${hospital.latitude}, ${hospital.longitude})`;
+                            list.appendChild(item);
+                        });
+                    } else {
+                        list.innerHTML = `<li class="list-group-item text-danger">No hospitals found.</li>`;
+                    }
+                })
+                .catch(error => console.error("Error fetching hospitals:", error));
+        }
     </script>
 </body>
+
 </html>

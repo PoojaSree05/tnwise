@@ -6,7 +6,6 @@ from accidentdetectionapp.stream import streaming
 import requests
 import pusher
 import pywhatkit as kit
-from pusher_push_notifications import PushNotifications
 from .models import Notifications, Hospital
 
 # ✅ Configure Pusher
@@ -49,23 +48,15 @@ def process_detection(results, confidence_threshold=0.6):
         print("[DEBUG] No detection found.")
         return False
 
-    accident_detected = False
-
     for _, result in results.iterrows():
-        class_name = result['name']
-        confidence = result['confidence']
-
-        if class_name.lower() == "accident" and confidence >= confidence_threshold:
+        if result['name'].lower() == "accident" and result['confidence'] >= confidence_threshold:
             print("[DEBUG] Valid Accident Detected!")
-            accident_detected = True
-            break
+            return True
+    return False
 
-    return accident_detected
-
-# ✅ YOLO Streaming with Improved Detection
+# ✅ YOLO Streaming with Detection
 def gen(camera):
-    accident_sent = False  # Prevent duplicate notifications
-
+    accident_sent = False
     while True:
         jpeg_frame, raw_frame = camera.get_frame()
 
@@ -74,28 +65,21 @@ def gen(camera):
             continue
 
         results = camera.detect_objects(raw_frame)
-        print("[DEBUG] YOLO Detection Result:", results)
 
         if process_detection(results) and not accident_sent:
             print("[DEBUG] Accident Detection Confirmed")
 
-            # Save notification in DB
-            notif = Notifications(notification="Accident detected", lattitude=47.5, longitude=122.33, accepted=0)
+            # Save notification
+            notif = Notifications(notification="Accident detected", lattitude=11.677733, longitude=78.124380, accepted=0)
             notif.save()
 
-            # Send push notification
             send_response(notif.n_id)
 
-            # Send WhatsApp message
-            message = "🚨 Accident Detected! Please check your dashboard."
-            phone_number = "+91XXXXXXXXXX"  # Replace with a valid phone number
-            send_whatsapp_message(phone_number, message)
+            send_whatsapp_message("+916380918443","🚨 Accident Detected!/n Immediate attention required./nPlease respond Quickly!/nLive Location: https://www.google.com/maps?q=11.677733,78.12438")
 
-            # Avoid duplicate alerts
             accident_sent = True
 
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + jpeg_frame + b'\r\n\r\n')
+        yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + jpeg_frame + b'\r\n\r\n')
 
 # ✅ Webcam Feed Endpoint
 def webcam_feed(request):
@@ -105,7 +89,7 @@ def webcam_feed(request):
 def home(request):
     return render(request, 'index.html')
 
-# ✅ Nearby Hospitals using OpenStreetMap API
+# ✅ Nearby Hospitals
 def get_nearby_hospitals(request):
     latitude = float(request.GET.get('lat', '11.677733'))
     longitude = float(request.GET.get('lon', '78.124380'))
@@ -143,11 +127,16 @@ def hospitals_page(request):
 # ✅ Notification Testing Page
 def test(request):
     global hospital_name
+
+    # Get notifications and hospitals
     notifications = Notifications.objects.all().order_by('-n_id')
-    accident_alert = "🚨 Accident detected! ✅ WhatsApp alert sent successfully."
+    hospitals = Hospital.objects.all()
+
+    accident_alert = "🚨 Accident detected! ✅ Request Sent to the nearest hospital."
 
     context = {
         'notifications': notifications,
+        'hospitals': hospitals,  # Add hospital list to context
         'hospital_name': hospital_name,
         'accident_alert': accident_alert,
     }
@@ -174,7 +163,6 @@ def register(request):
         latitude = request.POST.get('latitude')
         longitude = request.POST.get('longitude')
 
-        print(name, email, latitude, longitude)
         hospital = Hospital(name=name, email=email, h_lattitude=latitude, h_longitude=longitude)
         hospital.save()
 

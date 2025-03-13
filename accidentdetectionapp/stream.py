@@ -119,7 +119,7 @@ class streaming(object):
 def send_whatsapp_message(latitude, longitude):
     try:
         phone_number = "+916380918443"
-        message = f"🚨 Accident Detected! Immediate attention required.\nLive Location: https://www.google.com/maps?q={latitude},{longitude}"
+        message = f"🚨 Accident Detected!\n Immediate attention required.\nPlease respond quickly\nLive Location: https://www.google.com/maps?q={latitude},{longitude}"
 
         encoded_message = message.replace(" ", "%20").replace("\n", "%0A")
 
